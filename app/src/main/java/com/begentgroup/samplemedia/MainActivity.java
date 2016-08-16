@@ -1,8 +1,11 @@
 package com.begentgroup.samplemedia;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -136,6 +139,38 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        btn = (Button)findViewById(R.id.btn_get);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivityForResult(new Intent(MainActivity.this, MusicListActivity.class), RC_MUSIC_LIST);
+            }
+        });
+    }
+
+    private static final int RC_MUSIC_LIST = 1;
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_MUSIC_LIST) {
+            if (resultCode == Activity.RESULT_OK) {
+                mPlayer.reset();
+                mState = PlayState.IDLE;
+                Uri uri = data.getData();
+                try {
+                    mPlayer.setDataSource(this, uri);
+                    mState = PlayState.INITIALIED;
+                    mPlayer.prepare();
+                    mState = PlayState.PREPARED;
+                    progressView.setMax(mPlayer.getDuration());
+                    progressView.setProgress(0);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     boolean isSeeking = false;
