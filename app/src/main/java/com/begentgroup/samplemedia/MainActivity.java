@@ -1,5 +1,7 @@
 package com.begentgroup.samplemedia;
 
+import android.content.Context;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -7,6 +9,8 @@ import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.SeekBar;
 
 import java.io.IOException;
@@ -27,14 +31,57 @@ public class MainActivity extends AppCompatActivity {
 
     PlayState mState;
 
-    SeekBar progressView;
+    SeekBar progressView, volumeView;
+
+    AudioManager mAM;
+
+    CheckBox muteView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         progressView = (SeekBar)findViewById(R.id.seek_progress);
+        volumeView = (SeekBar)findViewById(R.id.seek_volume);
+        mAM = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        int max = mAM.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        volumeView.setMax(max);
+        int current = mAM.getStreamVolume(AudioManager.STREAM_MUSIC);
+        volumeView.setProgress(current);
+        volumeView.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    mAM.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
+                }
+            }
 
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        muteView = (CheckBox)findViewById(R.id.check_mute);
+        muteView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                if (isChecked) {
+//                    mPlayer.setVolume(0, 0);
+                    mHandler.removeCallbacks(volumeUp);
+                    mHandler.post(volumeDown);
+                } else {
+//                    mPlayer.setVolume(1, 1);
+                    mHandler.removeCallbacks(volumeDown);
+                    mHandler.post(volumeUp);
+                }
+            }
+        });
         mPlayer = MediaPlayer.create(this, R.raw.winter_blues);
         mState = PlayState.PREPARED;
 
@@ -94,6 +141,34 @@ public class MainActivity extends AppCompatActivity {
     boolean isSeeking = false;
     Handler mHandler = new Handler(Looper.getMainLooper());
 
+    float currentVolume = 1.0f;
+    Runnable volumeUp = new Runnable() {
+        @Override
+        public void run() {
+            if (currentVolume < 1.0f) {
+                mPlayer.setVolume(currentVolume, currentVolume);
+                currentVolume += 0.1f;
+                mHandler.postDelayed(this, 100);
+            } else {
+                currentVolume = 1.0f;
+                mPlayer.setVolume(currentVolume, currentVolume);
+            }
+        }
+    };
+
+    Runnable volumeDown = new Runnable() {
+        @Override
+        public void run() {
+            if (currentVolume > 0) {
+                mPlayer.setVolume(currentVolume, currentVolume);
+                currentVolume -= 0.1f;
+                mHandler.postDelayed(this, 100);
+            } else {
+                currentVolume = 0;
+                mPlayer.setVolume(currentVolume, currentVolume);
+            }
+        }
+    };
     Runnable progressRunnable = new Runnable() {
         @Override
         public void run() {
