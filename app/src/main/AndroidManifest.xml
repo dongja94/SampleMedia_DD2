@@ -38,7 +38,8 @@
             android:exported="true"
             android:screenOrientation="landscape" />
         <activity android:name=".CameraActivity" />
-        <activity android:name=".CaptureImageActivity"></activity>
+        <activity android:name=".CaptureImageActivity" />
+        <activity android:name=".BarCodeActivity"></activity>
     </application>
 
 </manifest>
