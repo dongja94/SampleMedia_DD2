@@ -37,7 +37,8 @@
             android:name=".RecorderActivity"
             android:exported="true"
             android:screenOrientation="landscape" />
-        <activity android:name=".CameraActivity"></activity>
+        <activity android:name=".CameraActivity" />
+        <activity android:name=".CaptureImageActivity"></activity>
     </application>
 
 </manifest>
